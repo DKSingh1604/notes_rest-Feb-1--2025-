@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:notes_rest/screens/add_page.dart';
+import 'package:http/http.dart' as http;
 
 class TodoList extends StatefulWidget {
   const TodoList({super.key});
@@ -11,6 +12,9 @@ class TodoList extends StatefulWidget {
 }
 
 class _TodoListState extends State<TodoList> {
+  TextEditingController titleController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,14 +35,19 @@ class _TodoListState extends State<TodoList> {
       ),
       body: ListView(
         children: [
-          TextField(
-            decoration: InputDecoration(
-              hintText: "Title",
+          Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: TextField(
+              controller: titleController,
+              decoration: InputDecoration(
+                hintText: "Title",
+              ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(15.0),
             child: TextField(
+              controller: descriptionController,
               decoration: InputDecoration(
                 hintText: "Description",
               ),
@@ -61,5 +70,21 @@ class _TodoListState extends State<TodoList> {
         ],
       ),
     );
+  }
+
+  void submitData() {
+    //get the data from form
+    final title = titleController.text;
+    final description = descriptionController.text;
+
+    final body = {
+      "title": title,
+      "description": description,
+      "is_completed": false
+    };
+
+    //submit data to the sever
+
+    //show success or fail message based on status
   }
 }
