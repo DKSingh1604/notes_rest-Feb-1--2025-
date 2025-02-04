@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:notes_rest/screens/add_page.dart';
-import 'package:http/http.dart' as http;
 
 class TodoList extends StatefulWidget {
   const TodoList({super.key});
@@ -84,6 +83,8 @@ class _TodoListState extends State<TodoList> {
     };
 
     //submit data to the sever
+    final url = 'https://api.nstack.in/v1/todos';
+    final uri = Uri.parse(url);
 
     //show success or fail message based on status
   }
