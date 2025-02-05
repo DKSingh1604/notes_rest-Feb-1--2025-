@@ -1,5 +1,8 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
 
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:notes_rest/screens/add_page.dart';
 
@@ -11,8 +14,12 @@ class TodoList extends StatefulWidget {
 }
 
 class _TodoListState extends State<TodoList> {
-  TextEditingController titleController = TextEditingController();
-  TextEditingController descriptionController = TextEditingController();
+  List items = [];
+  @override
+  void initState() {
+    fetchTodo();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,60 +39,23 @@ class _TodoListState extends State<TodoList> {
         },
         child: const Icon(Icons.add),
       ),
-      body: ListView(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: TextField(
-              controller: titleController,
-              decoration: InputDecoration(
-                hintText: "Title",
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: TextField(
-              controller: descriptionController,
-              decoration: InputDecoration(
-                hintText: "Description",
-              ),
-              keyboardType: TextInputType.multiline,
-              minLines: 5,
-              maxLines: 8,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(50.0),
-            child: Container(
-                decoration: BoxDecoration(
-                    color: Colors.deepPurple,
-                    borderRadius: BorderRadius.circular(20)),
-                child: ElevatedButton(
-                  onPressed: () {},
-                  child: Text("Save"),
-                )),
-          ),
-        ],
-      ),
     );
   }
 
-  void submitData() {
-    //get the data from form
-    final title = titleController.text;
-    final description = descriptionController.text;
+  Future<void> fetchTodo() async {
+    const url = "https://api.nstack.in/v1/todos?page=1&limit=10";
 
-    final body = {
-      "title": title,
-      "description": description,
-      "is_completed": false
-    };
-
-    //submit data to the sever
-    final url = 'https://api.nstack.in/v1/todos';
     final uri = Uri.parse(url);
+    final response = await http.get(uri);
 
-    //show success or fail message based on status
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final json = jsonDecode(response.body) as Map;
+      final result = json['items'] as List;
+      setState(() {
+        items = result;
+      });
+    } else {
+      print(response.statusCode);
+    }
   }
 }
