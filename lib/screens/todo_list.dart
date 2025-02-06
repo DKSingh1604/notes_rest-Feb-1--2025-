@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
+// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors, sort_child_properties_last
 
 import 'dart:convert';
 
@@ -15,6 +15,8 @@ class TodoList extends StatefulWidget {
 
 class _TodoListState extends State<TodoList> {
   List items = [];
+  bool isLoading = true;
+
   @override
   void initState() {
     fetchTodo();
@@ -26,6 +28,57 @@ class _TodoListState extends State<TodoList> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Todo List'),
+      ),
+      body: Visibility(
+        visible: isLoading,
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+        replacement: RefreshIndicator(
+          onRefresh: fetchTodo,
+          child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index] as Map;
+              final id = item['_id'] as String;
+              return Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 84, 83, 83),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      child: Text('${index + 1}'),
+                    ),
+                    title: Text(item['title']),
+                    subtitle: Text(item['description']),
+                    trailing: PopupMenuButton(onSelected: (value) {
+                      if (value == 'edit') {
+                        //edit the tile
+                      } else if (value == 'delete') {
+                        //delete the tile
+                        deleteById(id);
+                      }
+                    }, itemBuilder: (context) {
+                      return [
+                        PopupMenuItem(
+                          child: Text("Edit"),
+                          value: 'edit',
+                        ),
+                        PopupMenuItem(
+                          child: Text("Delete"),
+                          value: 'delete',
+                        ),
+                      ];
+                    }),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -55,7 +108,28 @@ class _TodoListState extends State<TodoList> {
         items = result;
       });
     } else {
-      print(response.statusCode);
+      //show error
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<void> deleteById(String id) async {
+    //delete the item
+    final url = 'https://api.nstack.in/v1/todos/$id';
+
+    final uri = Uri.parse(url);
+    final response = await http.delete(uri);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      //remove item from the list
+      final filtered = items.where((element) => element['_id'] != id).toList();
+      setState(() {
+        items = filtered;
+      });
+    } else {
+      //show error
     }
   }
 }
