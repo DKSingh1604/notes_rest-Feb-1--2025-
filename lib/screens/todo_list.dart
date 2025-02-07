@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:notes_rest/screens/add_page.dart';
 
 class TodoList extends StatefulWidget {
-  const TodoList({super.key});
+  const TodoList({
+    super.key,
+  });
 
   @override
   State<TodoList> createState() => _TodoListState();
@@ -57,6 +59,7 @@ class _TodoListState extends State<TodoList> {
                     trailing: PopupMenuButton(onSelected: (value) {
                       if (value == 'edit') {
                         //edit the tile
+                        navigateToEditPage(item);
                       } else if (value == 'delete') {
                         //delete the tile
                         deleteById(id);
@@ -81,18 +84,35 @@ class _TodoListState extends State<TodoList> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
+        onPressed: () async {
           //navigate to add page
-          Navigator.push(
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => AddPage(),
             ),
           );
+          setState(() {
+            isLoading = true;
+          });
+          fetchTodo();
         },
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<void> navigateToEditPage(Map item) async {
+    final route = MaterialPageRoute(
+      builder: (context) => AddPage(
+        todo: item,
+      ),
+    );
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    fetchTodo();
   }
 
   Future<void> fetchTodo() async {
@@ -109,6 +129,7 @@ class _TodoListState extends State<TodoList> {
       });
     } else {
       //show error
+      showErrorMessage('Fetching failed');
     }
 
     setState(() {
@@ -130,6 +151,17 @@ class _TodoListState extends State<TodoList> {
       });
     } else {
       //show error
+      showErrorMessage('Deletion failed');
     }
+  }
+
+  void showErrorMessage(String message) {
+    final snackBar = SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.red,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+    Navigator.pop(context);
   }
 }

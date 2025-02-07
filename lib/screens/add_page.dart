@@ -5,7 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
 class AddPage extends StatefulWidget {
-  const AddPage({super.key});
+  final Map? todo;
+  const AddPage({
+    super.key,
+    this.todo,
+  });
 
   @override
   State<AddPage> createState() => _AddPageState();
@@ -14,11 +18,24 @@ class AddPage extends StatefulWidget {
 class _AddPageState extends State<AddPage> {
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
+
+  bool isEdit = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.todo != null) {
+      isEdit = true;
+    }
+    titleController.text = widget.todo!['title'];
+    descriptionController.text = widget.todo!['description'];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Todo'),
+        title: Text(isEdit ? 'Edit Todo' : 'Add Todo'),
       ),
       body: ListView(
         children: [
@@ -50,10 +67,8 @@ class _AddPageState extends State<AddPage> {
                     color: Colors.deepPurple,
                     borderRadius: BorderRadius.circular(20)),
                 child: ElevatedButton(
-                  onPressed: () {
-                    submitData();
-                  },
-                  child: Text("Save"),
+                  onPressed: isEdit ? updateData : submitData,
+                  child: Text(isEdit ? 'Edit Todo' : 'Add Todo'),
                 )),
           ),
         ],
@@ -61,6 +76,47 @@ class _AddPageState extends State<AddPage> {
     );
   }
 
+  Future<void> updateData() async {
+    //get the data from form
+    final todo = widget.todo;
+    if (todo == null) {
+      print('You cannnot not call updated without todo data');
+      return;
+    }
+
+    final id = todo['_id'];
+
+    final body = {
+      'title': titleController.text,
+      'description': descriptionController.text,
+      'is_completed': false,
+    };
+
+    //submit updated data to the sever
+    final url = 'https://api.nstack.in/v1/todos/$id';
+    final uri = Uri.parse(url);
+    final response = await http.put(
+      uri,
+      body: jsonEncode(body),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    //show success or fail message based on status
+    print(response.statusCode);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print("Data edited successfully");
+      print(titleController.text);
+      print(descriptionController.text);
+
+      showSuccessMessage("Data edited successfully!");
+    } else {
+      print("Failed to edit data");
+      print(response.body);
+      showErrorMessage("${response.body}, Failed to edit data");
+    }
+  }
+
+  //S U B M I T   D A T A    T O   T H E   S E R V E R
   Future<void> submitData() async {
     //get the data from form
     final title = titleController.text;
@@ -91,7 +147,7 @@ class _AddPageState extends State<AddPage> {
     } else {
       print("Failed to save data");
       print(response.body);
-      showSErrorMessage("${response.body}, Failed to save data");
+      showErrorMessage("${response.body}, Failed to save data");
     }
   }
 
@@ -106,7 +162,7 @@ class _AddPageState extends State<AddPage> {
     Navigator.pop(context);
   }
 
-  void showSErrorMessage(String message) {
+  void showErrorMessage(String message) {
     final snackBar = SnackBar(
       content: Text(message),
       backgroundColor: Colors.red,
