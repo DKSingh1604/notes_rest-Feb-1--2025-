@@ -38,48 +38,54 @@ class _TodoListState extends State<TodoList> {
         ),
         replacement: RefreshIndicator(
           onRefresh: fetchTodo,
-          child: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index] as Map;
-              final id = item['_id'] as String;
-              return Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 84, 83, 83),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      child: Text('${index + 1}'),
+          child: Visibility(
+            visible: items.isNotEmpty,
+            replacement: Center(
+              child: Text('No Todo Items'),
+            ),
+            child: ListView.builder(
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index] as Map;
+                final id = item['_id'] as String;
+                return Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 84, 83, 83),
+                      borderRadius: BorderRadius.circular(15),
                     ),
-                    title: Text(item['title']),
-                    subtitle: Text(item['description']),
-                    trailing: PopupMenuButton(onSelected: (value) {
-                      if (value == 'edit') {
-                        //edit the tile
-                        navigateToEditPage(item);
-                      } else if (value == 'delete') {
-                        //delete the tile
-                        deleteById(id);
-                      }
-                    }, itemBuilder: (context) {
-                      return [
-                        PopupMenuItem(
-                          child: Text("Edit"),
-                          value: 'edit',
-                        ),
-                        PopupMenuItem(
-                          child: Text("Delete"),
-                          value: 'delete',
-                        ),
-                      ];
-                    }),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        child: Text('${index + 1}'),
+                      ),
+                      title: Text(item['title']),
+                      subtitle: Text(item['description']),
+                      trailing: PopupMenuButton(onSelected: (value) {
+                        if (value == 'edit') {
+                          //edit the tile
+                          navigateToEditPage(item);
+                        } else if (value == 'delete') {
+                          //delete the tile
+                          deleteById(id);
+                        }
+                      }, itemBuilder: (context) {
+                        return [
+                          PopupMenuItem(
+                            child: Text("Edit"),
+                            value: 'edit',
+                          ),
+                          PopupMenuItem(
+                            child: Text("Delete"),
+                            value: 'delete',
+                          ),
+                        ];
+                      }),
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
